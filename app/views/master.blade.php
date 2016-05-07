@@ -39,17 +39,19 @@
                         margin-top: 3px;
                     }
                     #footer > .container {
-                        height: 60px;
                         border: 1px solid #171717;
-                        max-width: 1170px;
                         background-color: #282828;
+                        -webkit-border-radius: 7px;
+                        -moz-border-radius: 7px;
+                        text-align: center;
+                        max-width: 1170px;
+                        width: auto;
                         margin-top: 10px;
                         margin-left: auto;
                         margin-right: auto;
                         border-radius: 10px;
-                        -webkit-border-radius: 7px;
-                        -moz-border-radius: 7px;
-                        text-align: center;
+                        position: fixed !important;
+                        bottom: 0;
                     }
                     .container .text-muted {
                         margin: 20px 15px;
@@ -130,6 +132,18 @@
                         -webkit-border-radius: 6px 0 6px 6px;
                         -moz-border-radius: 6px 0 6px 6px;
                         border-radius: 6px 0 6px 6px;
+                    }
+
+                    .footer{
+                        position: fixed;
+                        bottom: 0;
+                        border: 1px solid #171717;
+                        background-color: #282828;
+                        -webkit-border-radius: 7px;
+                        -moz-border-radius: 7px;
+                        text-align: center;
+                        display: block;
+                        width: 100%;
                     }
 
                     .ui-dialog-titlebar-close {
@@ -363,7 +377,7 @@
     @yield('content')
 </div>
 
-<div id="footer" style="margin-bottom:10px">
+<div id="" class="footer">
     <div class="container">
         <p class="text-muted">LETME</p>
     </div>

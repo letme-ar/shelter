@@ -7,13 +7,24 @@
         width: auto;
         display: block;
         padding: 10px;
-        border: 1px solid #269abc;
+        border: 1px solid #0a4aa8;
         font: arial, helvetica;
         font-weight: bold;
         -webkit-border-radius: 5px 10px;/* Safari  */
         -moz-border-radius: 5px 10px;     /* Firefox */
     }
 
+    .hora_ocupada{
+        width: auto;
+        display: block;
+        padding: 10px;
+        border: 1px solid #0a4aa8;
+        background-color: #11ee88;
+        font: arial, helvetica;
+        font-weight: bold;
+        -webkit-border-radius: 5px 10px;/* Safari  */
+        -moz-border-radius: 5px 10px;     /* Firefox */
+    }
     .evento{
         margin-left: 20px;
     }
@@ -47,7 +58,6 @@
 
     #calendario_celular{
         overflow: auto;
-        height: 300px;
     }
     </style>
 

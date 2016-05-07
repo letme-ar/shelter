@@ -1,5 +1,6 @@
 <script>
 $(document).ready(function() {
+    console.log("hola");
 
     var meses = new Array ("Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre");
     var diasSemana = new Array("Domingo","Lunes","Martes","Miércoles","Jueves","Viernes","Sábado");
@@ -20,8 +21,10 @@ $(document).ready(function() {
 
     });
 
+    /*
     var $calendario_celular = document.querySelector("#calendario_celular");
     var calendario_celular = new Hammer($calendario_celular);
+
 
     calendario_celular.on("panleft",function(){
         $('#fecha_actual').text(darManana());
@@ -32,6 +35,7 @@ $(document).ready(function() {
         $('#fecha_actual').text(darAyer());
         getEventData();
     });
+    */
 
 
 
@@ -537,7 +541,14 @@ $(document).ready(function() {
                     }
 
                 }
-                $("#calendario_celular").append("<div class='hora'>"+ponerCeros(hora.toString())+":"+ponerCeros(minutos.toString())+" hs <label class='evento'>"+grupo+"</label>");
+                var imagen = '{{ HTML::image("images/agregar.png", "Imagen no encontrada",["id" => "agregar","style" => "height: 32px; width: 32px"]) }}';
+                var agregar = "<label style='position: absolute;right: 0; margin-right: 5px'><a style='margin-left: 10px' title='Agregar' href='{{ route('calendario.nuevoEventoResponsive') }}'>"+imagen+"</a></label>";
+
+                if(grupo === "Disponible")
+                    $("#calendario_celular").append("<div class='hora'>"+ponerCeros(hora.toString())+":"+ponerCeros(minutos.toString())+" hs <label class='evento'>"+grupo+"</label>"+agregar);
+                else
+                    $("#calendario_celular").append("<div class='hora_ocupada'>"+ponerCeros(hora.toString())+":"+ponerCeros(minutos.toString())+" hs <label class='evento'>"+grupo+"</label>");
+
 //                $("#calendario_celular").append("<label>"+grupo+"</label></div>");
             }
         }
