@@ -83,5 +83,11 @@ class FunctionsSpecials
         return $array;
     }
 
+    public function completarCerosCalendario($val)
+    {
+        return str_pad($val,2,"0",STR_PAD_LEFT);
+
+    }
+
 
 } 

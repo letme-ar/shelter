@@ -35,6 +35,7 @@ Route::group(array('before' => 'auth'), function()
     Route::post("calendario/validarVencidas",array('as' => 'calendario.validarVencidas','uses'  => 'CalendarioController@validarVencidas'));
     Route::post("calendario/actualizarGanadasPerdidas",array('as' => 'calendario.actualizarGanadasPerdidas','uses'  => 'CalendarioController@actualizarGanadasPerdidas'));
     Route::post("calendario/validarDatos",array('as' => 'calendario.validarDatos','uses'  => 'CalendarioController@validarDatos'));
+    Route::post("calendario/validarDatosCalendario",array('as' => 'calendario.validarDatosCalendario','uses'  => 'CalendarioController@validarDatosCalendario'));
     Route::resource("calendario","CalendarioController");
 
 

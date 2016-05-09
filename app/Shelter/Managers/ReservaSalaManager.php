@@ -14,8 +14,9 @@ class ReservaSalaManager extends BaseManager{
     {
         return [
             'id_grupo' => 'required',
-            'start' => 'required',
-            'end' => 'required'
+            'id_horario_inicio' => 'required',
+            'id_horario_fin' => 'required',
+            'no_tiene_reserva' => 'required',
 
         ];
     }
@@ -24,8 +25,9 @@ class ReservaSalaManager extends BaseManager{
     {
         return [
             'id_grupo.required' => 'El grupo es requerido',
-            'start.required' => 'El ingreso es requerido',
-            'end.required' => 'La salida es requerida'
+            'id_horario_inicio.required' => 'El ingreso es requerido',
+            'id_horario_fin.required' => 'La salida es requerida',
+            'no_tiene_reserva.required' => 'Ya hay una reserva dentro del rango seleccionado'
         ];
     }
 

@@ -89,9 +89,9 @@
 
         {{ Field::text('body','Comentario', null, ['placeholder' => 'Comentario de la reserva'] ) }}
 
-        {{ Field::select('start','Ingreso',$combo_horarios,null,['id' => 'start']) }}
+        {{ Field::select('id_horario_inicio','Ingreso',$combo_horarios,null,['id' => 'start']) }}
 
-        <div id="div_end">{{ Field::select('end','Salida',$combo_horarios,null,['id' => 'end']) }} </div>
+        <div id="div_end">{{ Field::select('id_horario_fin','Salida',$combo_horarios,null,['id' => 'end']) }} </div>
 
         {{ Field::text('contacto','Contacto', null, ['id' => 'contacto','disabled' => 'disabled'] ) }}
 
@@ -103,7 +103,7 @@
 
         {{ Form::close() }}
 
-        <div id="mensaje"></div>
+
 
 
     </div>

@@ -6,6 +6,7 @@
  * Time: 15:28
  */
 use Shelter\Components\FunctionsSpecials;
+use Shelter\Repositories\RepoHorarios;
 use Shelter\Repositories\RepoReservaEstado;
 use Shelter\Repositories\RepoSala;
 use Shelter\Repositories\RepoReservasSalas;
@@ -27,6 +28,14 @@ class CalendarioController extends BaseController
     private $repoReservaEstado;
     private $repoServicio;
     private $ruta_index;
+    /**
+     * @var RepoHorarios
+     */
+    private $repoHorarios;
+    /**
+     * @var FunctionsSpecials
+     */
+    private $functionsSpecials;
 
     public function __construct(RepoSala $repoSala,
                                 RepoReservasSalas $repoReservaSala,
@@ -34,7 +43,9 @@ class CalendarioController extends BaseController
                                 RepoUser $repoUser,
                                 RepoContacto $repoContacto,
                                 RepoServicio $repoServicio,
-                                RepoReservaEstado $repoReservaEstado)
+                                RepoReservaEstado $repoReservaEstado,
+                                RepoHorarios $repoHorarios,
+                                FunctionsSpecials $functionsSpecials)
     {
         $this->repoSala = $repoSala;
         $this->repoReservaSala = $repoReservaSala;
@@ -51,6 +62,8 @@ class CalendarioController extends BaseController
             $this->id_negocio_principal = "";
         $this->repoReservaEstado = $repoReservaEstado;
         $this->repoServicio = $repoServicio;
+        $this->repoHorarios = $repoHorarios;
+        $this->functionsSpecials = $functionsSpecials;
     }
 
     function index()
@@ -124,7 +137,8 @@ class CalendarioController extends BaseController
     {
         $model   = $this->repoReservaSala->nuevaReservaSala();
         $data    = Input::all();
-//        dd($data);
+        $data['id_horario_inicio'] = $this->repoHorarios->obtenerIdPorHorario($this->functionsSpecials->completarCerosCalendario($data['hora_inicio']).":".$this->functionsSpecials->completarCerosCalendario($data['minuto_inicio']));
+        $data['id_horario_fin'] = $this->repoHorarios->obtenerIdPorHorario($this->functionsSpecials->completarCerosCalendario($data['hora_fin']).":".$this->functionsSpecials->completarCerosCalendario($data['minuto_fin']));
         $manager = new ReservaSalaManager($model,$data);
         $manager->save();
         return $manager->getEntity()->id;
@@ -132,13 +146,16 @@ class CalendarioController extends BaseController
 
     public function actualizarEvento()
     {
+//        dd($_POST);
+        $id_horario_inicio = $this->repoHorarios->obtenerIdPorHorario($this->functionsSpecials->completarCerosCalendario($_POST['hora_inicio']).":".$this->functionsSpecials->completarCerosCalendario($_POST['minuto_inicio']));
+        $id_horario_fin = $this->repoHorarios->obtenerIdPorHorario($this->functionsSpecials->completarCerosCalendario($_POST['hora_fin']).":".$this->functionsSpecials->completarCerosCalendario($_POST['minuto_fin']));
         $reserva = $this->repoReservaSala->find($_POST['id']);
-        if($this->repoReservaSala->validarReprogramacion($reserva,$_POST))
+        if($this->repoReservaSala->validarReprogramacion($reserva,$_POST,$id_horario_inicio,$id_horario_fin))
             $_POST['id_estado_reserva'] = 2;
-//        else
-//            $_POST['id_estado_reserva'] = 1;
 
-//        dd($_POST['id_estado_reserva']);
+        $_POST['id_horario_inicio'] = $id_horario_inicio;
+        $_POST['id_horario_fin'] = $id_horario_fin;
+
         $reserva->fill($_POST);
         $reserva->save();
         return $reserva->id_estado_reserva;
@@ -164,7 +181,8 @@ class CalendarioController extends BaseController
     {
         $id_sala = $_POST['id_sala'];
 //        dd($id_sala);
-        $listado_vencidas = $this->repoReservaSala->darListaVencidas($id_sala);
+        $id_hora_actual = $this->repoHorarios->obtenerIdPorHorario(date("H:00"));
+        $listado_vencidas = $this->repoReservaSala->darListaVencidas($id_sala,$id_hora_actual);
 
         if(count($listado_vencidas) > 0)
         {
@@ -176,7 +194,8 @@ class CalendarioController extends BaseController
     public function actualizarGanadasPerdidas()
     {
         $id_sala = $_POST['id_sala'];
-        $listado_ids = $this->repoReservaSala->darIdsVencidas($id_sala);
+        $id_horario_actual = $this->repoHorarios->obtenerIdPorHorario(date("H:00"));
+        $listado_ids = $this->repoReservaSala->darIdsVencidas($id_sala,$id_horario_actual);
         foreach ($listado_ids as $id)
             $this->repoReservaSala->actualizarVencidas($id,$_POST["id_estado$id"]);
     }
@@ -199,47 +218,55 @@ class CalendarioController extends BaseController
 
     }
 
-    public function validarDatos()
+    public function validarDatos($id_horario_inicio = "",$id_horario_fin = "")
     {
         $model   = $this->repoReservaSala->nuevaReservaSala();
         $data    = Input::all();
-//        dd($data);
+
+        if($id_horario_inicio)
+        {
+            $data['id_horario_inicio'] = $id_horario_inicio;
+            $data['id_horario_fin'] = $id_horario_fin;
+        }
+        if((!empty($data['id_horario_inicio']))||(!empty($data['id_horario_fin'])))
+        {
+            if($this->repoReservaSala->validarSuperposicion($data['fecha'],$this->repoSala->darSalaActual($this->id_negocio_principal),$data['id_horario_inicio'],$data['id_horario_fin']))
+                $data['no_tiene_reserva'] = "";
+            else
+                $data['no_tiene_reserva'] = "No tiene";
+        }
+        else
+        {
+            $data['no_tiene_reserva'] = "No tiene";
+
+        }
+
         $manager = new ReservaSalaManager($model,$data);
         return $manager->isValid();
 
     }
 
-    public function darComboEnd()
+    function validarDatosCalendario()
     {
-        $start = Input::get('start');
-        $functions_specials = new FunctionsSpecials();
-        $combo_horarios = $functions_specials->darComboDatosParaComboEnd($start);
-        return Field::select('end','Salida',$combo_horarios,null,['id' => 'end']);
+        $data = Input::all();
+        $id_horario_inicio = $this->repoHorarios->obtenerIdPorHorario($this->functionsSpecials->completarCerosCalendario($data['hora_inicio']).":".$this->functionsSpecials->completarCerosCalendario($data['minuto_inicio']));
+        $id_horario_fin = $this->repoHorarios->obtenerIdPorHorario($this->functionsSpecials->completarCerosCalendario($data['hora_fin']).":".$this->functionsSpecials->completarCerosCalendario($data['minuto_fin']));
 
+        return $this->validarDatos($id_horario_inicio,$id_horario_fin);
     }
+
 
     public function store()
     {
         $model   = $this->repoReservaSala->nuevaReservaSala();
         $data    = Input::all();
-//        dd($data);
         $data['id_estado_reserva'] = 1; // Programada por defecto
-        $data['comentario'] = $data['body']; // Programada por defecto
+        $data['comentario'] = $data['body'];
         $fecha = explode("/",$data['fecha']);
         $data['dia'] = $fecha[0];
         $data['mes'] = $fecha[1];
         $data['anio'] = $fecha[2];
-        $functions_specials = new FunctionsSpecials();
         $data['id_sala'] = $this->repoSala->darSalaActual($this->id_negocio_principal);
-        $start = explode(":",$functions_specials->darHorarioPorId($data['start']));
-        $end = explode(":",$functions_specials->darHorarioPorId($data['end']));
-
-        $data['hora_inicio'] = $start[0];
-        $data['minuto_inicio'] = $start[1];
-
-        $data['hora_fin'] = $end[0];
-        $data['minuto_fin'] = $end[1];
-
         $manager = new ReservaSalaManager($model,$data);
         $manager->save();
         return Redirect::route('calendario.index');
@@ -250,7 +277,6 @@ class CalendarioController extends BaseController
 
     public function nuevoEventoResponsive()
     {
-        $functions_specials = new FunctionsSpecials();
         $fecha_actual = date("d/m/Y");
         $action = "Agregar";
         $ruta_index = $this->ruta_index;
@@ -259,9 +285,20 @@ class CalendarioController extends BaseController
         $combo_grupos = $this->darListaGrupos();
         $combo_estados = $this->darListaEstadosReservas();
         $combo_servicios = $this->darListaServicios();
-        $combo_horarios = $functions_specials->darListaHorariosInicio();
+        $combo_horarios = $this->repoHorarios->darListaHorarios();
         return View::make($this->view."form_responsive",compact("action","model","data_formulario","combo_grupos","combo_estados","combo_servicios","combo_horarios","ruta_index","fecha_actual"));
 
     }
+
+
+    public function darComboEnd()
+    {
+        $id_horario_inicio = Input::get('start');
+        $combo_horarios = $this->repoHorarios->getDataComboEnd($id_horario_inicio);
+        return Field::select('id_horario_fin','Salida',$combo_horarios,null,['id' => 'end']);
+
+    }
+
+
 
 }

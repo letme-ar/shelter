@@ -202,10 +202,7 @@ $(document).ready(function() {
                 calEvent.id_estado_reserva = 1;
 
 
-                if(!calEvent.id_grupo)
-                    alert("Selecciona un grupo");
-                else
-                {
+
                     var anio = calEvent.start.getFullYear();
                     var mes = calEvent.start.getMonth()+1;
                     var dia = calEvent.start.getDate();
@@ -213,6 +210,7 @@ $(document).ready(function() {
                     var minuto_inicio = calEvent.start.getMinutes();
                     var hora_fin = calEvent.end.getHours();
                     var minuto_fin = calEvent.end.getMinutes();
+                    var fecha = dia+"/"+mes+"/"+anio;
 
                     var id_sala = $("#id_sala").val();
                     var start = calEvent.start;
@@ -223,8 +221,52 @@ $(document).ready(function() {
                     var id_servicio = $("#id_servicio").val();
                     var id_estado_reserva = 1;
                     var destino = "{{ Route('calendario.nuevoEvento') }}";
-                    var datos = "id_sala="+id_sala+"&anio="+anio+"&mes="+mes+"&dia="+dia+"&hora_inicio="+hora_inicio+"&minuto_inicio="+minuto_inicio+"&hora_fin="+hora_fin+"&minuto_fin="+minuto_fin+"&title="+title+"&comentario="+body+"&id_grupo="+id_grupo+"&id_estado_reserva="+id_estado_reserva+"&id_servicio="+id_servicio;
+//                    var datos = "id_sala="+id_sala+"&anio="+anio+"&mes="+mes+"&dia="+dia+"&hora_inicio="+hora_inicio+"&minuto_inicio="+minuto_inicio+"&hora_fin="+hora_fin+"&minuto_fin="+minuto_fin+"&title="+title+"&comentario="+body+"&id_grupo="+id_grupo+"&id_estado_reserva="+id_estado_reserva+"&id_servicio="+id_servicio;
+                    var datos = "id_sala="+id_sala+"&fecha="+fecha+"&hora_inicio="+hora_inicio+"&minuto_inicio="+minuto_inicio+"&hora_fin="+hora_fin+"&minuto_fin="+minuto_fin+"&title="+title+"&comentario="+body+"&id_grupo="+id_grupo+"&id_estado_reserva="+id_estado_reserva+"&id_servicio="+id_servicio;
 
+//                    var
+                    console.log(start);
+//                    var datos = $('#frmReserva').serialize();
+                    var destino = "{{ Route('calendario.validarDatosCalendario') }}";
+                    $.ajax({
+                        type: "Post",
+                        url: destino,
+                        data: datos,
+                        async: true,
+                        success: function(respuesta){
+                            if(respuesta)
+                            {
+                                darMensaje("mensaje",300,500,respuesta);
+//                                alert(respuesta);
+                            }
+                            else
+                            {
+                                var datos = "id_sala="+id_sala+"&anio="+anio+"&mes="+mes+"&dia="+dia+"&hora_inicio="+hora_inicio+"&minuto_inicio="+minuto_inicio+"&hora_fin="+hora_fin+"&minuto_fin="+minuto_fin+"&title="+title+"&comentario="+body+"&id_grupo="+id_grupo+"&id_estado_reserva="+id_estado_reserva+"&id_servicio="+id_servicio;
+                                var destino = "{{ Route('calendario.nuevoEvento') }}";
+//                                console.log(respuesta);
+                                calEvent.id = respuesta;
+                                $calendar.weekCalendar("removeUnsavedEvents");
+                                $calendar.weekCalendar("updateEvent", calEvent);
+                                var id = $.ajax({
+                                    url:  destino,
+                                    type: "post",
+                                    dataType: "json",
+                                    data: datos,
+                                    async: true,
+                                    success:function(respuesta)
+                                    {
+                                        calEvent.id = respuesta;
+                                        $calendar.weekCalendar("removeUnsavedEvents");
+                                        $calendar.weekCalendar("updateEvent", calEvent);
+                                    }
+                                });
+                                $dialogContent.dialog("close");
+                            }
+                        }
+
+                    });
+
+                    /*
                     var id = $.ajax({
                         url:  destino,
                         type: "post",
@@ -238,11 +280,11 @@ $(document).ready(function() {
                             $calendar.weekCalendar("updateEvent", calEvent);
                         }
                     });
+                    */
+
+//                    $dialogContent.dialog("close");
 
 
-                    $dialogContent.dialog("close");
-
-                }
                },
                Cerrar : function() {
                   $dialogContent.dialog("close");
