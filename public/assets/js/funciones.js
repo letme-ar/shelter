@@ -10,6 +10,7 @@
             buttons: {
                 "Aceptar": function() {
                     $( this ).dialog( "close" );
+                    $('#'+div).dialog('destroy');
                 }
             }
         }).find('.ui-dialog-titlebar-close').hide();

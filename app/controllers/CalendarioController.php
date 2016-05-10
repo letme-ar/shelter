@@ -142,7 +142,7 @@ class CalendarioController extends BaseController
         $manager = new ReservaSalaManager($model,$data);
         $manager->save();
         return $manager->getEntity()->id;
-    }// Lic. Acosta 20/07 16:00
+    }
 
     public function actualizarEvento()
     {
@@ -180,14 +180,15 @@ class CalendarioController extends BaseController
     public function validarVencidas()
     {
         $id_sala = $_POST['id_sala'];
-//        dd($id_sala);
         $id_hora_actual = $this->repoHorarios->obtenerIdPorHorario(date("H:00"));
         $listado_vencidas = $this->repoReservaSala->darListaVencidas($id_sala,$id_hora_actual);
+        $fecha_actual = date("Y-n-j");
 
+//        dd($listado_vencidas[0]);
         if(count($listado_vencidas) > 0)
         {
             $combo_estado = array('4' => 'Ganada','5' => 'Perdida');
-            return View::make($this->view."listado_vencidas", compact("listado_vencidas","combo_estado"));
+            return View::make($this->view."listado_vencidas", compact("listado_vencidas","combo_estado","fecha_actual"));
         }
     }
 
@@ -223,6 +224,7 @@ class CalendarioController extends BaseController
         $model   = $this->repoReservaSala->nuevaReservaSala();
         $data    = Input::all();
 
+//        dd($data);
         if($id_horario_inicio)
         {
             $data['id_horario_inicio'] = $id_horario_inicio;
@@ -230,7 +232,7 @@ class CalendarioController extends BaseController
         }
         if((!empty($data['id_horario_inicio']))||(!empty($data['id_horario_fin'])))
         {
-            if($this->repoReservaSala->validarSuperposicion($data['fecha'],$this->repoSala->darSalaActual($this->id_negocio_principal),$data['id_horario_inicio'],$data['id_horario_fin']))
+            if($this->repoReservaSala->validarSuperposicion($data['fecha'],$this->repoSala->darSalaActual($this->id_negocio_principal),$data['id_horario_inicio'],$data['id_horario_fin'],$data['id']))
                 $data['no_tiene_reserva'] = "";
             else
                 $data['no_tiene_reserva'] = "No tiene";
@@ -249,6 +251,7 @@ class CalendarioController extends BaseController
     function validarDatosCalendario()
     {
         $data = Input::all();
+//        dd($data);
         $id_horario_inicio = $this->repoHorarios->obtenerIdPorHorario($this->functionsSpecials->completarCerosCalendario($data['hora_inicio']).":".$this->functionsSpecials->completarCerosCalendario($data['minuto_inicio']));
         $id_horario_fin = $this->repoHorarios->obtenerIdPorHorario($this->functionsSpecials->completarCerosCalendario($data['hora_fin']).":".$this->functionsSpecials->completarCerosCalendario($data['minuto_fin']));
 

@@ -52,6 +52,7 @@ $(document).ready(function() {
 
             success:function(respuesta)
             {
+//                console.log(respuesta);
                 if(respuesta != "")
                 {
                     $("#mensaje").html(respuesta);
@@ -221,12 +222,8 @@ $(document).ready(function() {
                     var id_servicio = $("#id_servicio").val();
                     var id_estado_reserva = 1;
                     var destino = "{{ Route('calendario.nuevoEvento') }}";
-//                    var datos = "id_sala="+id_sala+"&anio="+anio+"&mes="+mes+"&dia="+dia+"&hora_inicio="+hora_inicio+"&minuto_inicio="+minuto_inicio+"&hora_fin="+hora_fin+"&minuto_fin="+minuto_fin+"&title="+title+"&comentario="+body+"&id_grupo="+id_grupo+"&id_estado_reserva="+id_estado_reserva+"&id_servicio="+id_servicio;
                     var datos = "id_sala="+id_sala+"&fecha="+fecha+"&hora_inicio="+hora_inicio+"&minuto_inicio="+minuto_inicio+"&hora_fin="+hora_fin+"&minuto_fin="+minuto_fin+"&title="+title+"&comentario="+body+"&id_grupo="+id_grupo+"&id_estado_reserva="+id_estado_reserva+"&id_servicio="+id_servicio;
 
-//                    var
-                    console.log(start);
-//                    var datos = $('#frmReserva').serialize();
                     var destino = "{{ Route('calendario.validarDatosCalendario') }}";
                     $.ajax({
                         type: "Post",
@@ -236,14 +233,12 @@ $(document).ready(function() {
                         success: function(respuesta){
                             if(respuesta)
                             {
-                                darMensaje("mensaje",300,500,respuesta);
-//                                alert(respuesta);
+                                darMensaje("popup_mensaje",300,500,respuesta);
                             }
                             else
                             {
                                 var datos = "id_sala="+id_sala+"&anio="+anio+"&mes="+mes+"&dia="+dia+"&hora_inicio="+hora_inicio+"&minuto_inicio="+minuto_inicio+"&hora_fin="+hora_fin+"&minuto_fin="+minuto_fin+"&title="+title+"&comentario="+body+"&id_grupo="+id_grupo+"&id_estado_reserva="+id_estado_reserva+"&id_servicio="+id_servicio;
                                 var destino = "{{ Route('calendario.nuevoEvento') }}";
-//                                console.log(respuesta);
                                 calEvent.id = respuesta;
                                 $calendar.weekCalendar("removeUnsavedEvents");
                                 $calendar.weekCalendar("updateEvent", calEvent);
@@ -378,7 +373,8 @@ $(document).ready(function() {
 
 
 
-                  calEvent.start = new Date(startField.val());
+
+                  /*calEvent.start = new Date(startField.val());
                   calEvent.end = new Date(endField.val());
                   calEvent.title = titleField.val();
                   calEvent.body = bodyField.val();
@@ -386,7 +382,11 @@ $(document).ready(function() {
                   calEvent.id_grupo = id_grupoField.val();
                   calEvent.id_servicio = id_servicioField.val();
                   calEvent.id_estado_reserva = id_estadoField.val();
-                  calEvent.contacto = contactoField.val();
+                  calEvent.contacto = contactoField.val();*/
+
+                  var horario_inicio = new Date(startField.val());
+                  var horario_fin = new Date(endField.val());
+                  /*
                   var anio = calEvent.start.getFullYear();
                   var mes = calEvent.start.getMonth()+1;
                   var dia = calEvent.start.getDate();
@@ -400,7 +400,7 @@ $(document).ready(function() {
                   var body = bodyField.val();
                   var id_grupo = $("#id_grupo").val();
                   var id_servicio = $("#id_servicio").val();
-                  var destino = "{{ Route('calendario.actualizarEvento') }}";
+                  {{--var destino = "{{ Route('calendario.actualizarEvento') }}";--}}
                   var datos = "id="+calEvent.id+"&id_sala="+id_sala+"&anio="+anio+"&mes="+mes+"&dia="+dia+"&hora_inicio="+hora_inicio+"&minuto_inicio="+minuto_inicio+"&hora_fin="+hora_fin+"&minuto_fin="+minuto_fin+"&comentario="+body+"&id_grupo="+id_grupo+"&id_servicio="+id_servicio;
                   $.ajax({
                       url:  destino,
@@ -414,7 +414,76 @@ $(document).ready(function() {
                       }
                   });
                    $calendar.weekCalendar("updateEvent", calEvent);
-                   $dialogContent.dialog("close");
+                   $dialogContent.dialog("close");*/
+
+                   var anio = horario_inicio.getFullYear();
+                   var mes = horario_inicio.getMonth()+1;
+                   var dia = horario_inicio.getDate();
+                   var hora_inicio = horario_inicio.getHours();
+                   var minuto_inicio = horario_inicio.getMinutes();
+                   var hora_fin = horario_fin.getHours();
+                   var minuto_fin = horario_fin.getMinutes();
+                   var fecha = dia+"/"+mes+"/"+anio;
+
+                   var id_sala = $("#id_sala").val();
+                   var title = titleField.val();
+                   var body = bodyField.val();
+                   var id_grupo = $("#id_grupo").val();
+                   var id_servicio = $("#id_servicio").val();
+                   var destino = "{{ Route('calendario.nuevoEvento') }}";
+                   var datos = "id="+calEvent.id+"&id_sala="+id_sala+"&fecha="+fecha+"&hora_inicio="+hora_inicio+"&minuto_inicio="+minuto_inicio+"&hora_fin="+hora_fin+"&minuto_fin="+minuto_fin+"&title="+title+"&comentario="+body+"&id_grupo="+id_grupo+"&id_estado_reserva="+id_estado_reserva+"&id_servicio="+id_servicio;
+
+                   var destino = "{{ Route('calendario.validarDatosCalendario') }}";
+                   $.ajax({
+                       type: "Post",
+                       url: destino,
+                       data: datos,
+                       async: true,
+                       success: function(respuesta){
+                           if(respuesta)
+                           {
+                               darMensaje("popup_mensaje",300,500,respuesta);
+                           }
+                           else
+                           {
+                               calEvent.start = new Date(startField.val());
+                               calEvent.end = new Date(endField.val());
+                               calEvent.title = titleField.val();
+                               calEvent.body = bodyField.val();
+                               calEvent.nombre_grupo = $("#id_grupo :selected").text();
+                               calEvent.id_grupo = id_grupoField.val();
+                               calEvent.id_servicio = id_servicioField.val();
+                               calEvent.id_estado_reserva = id_estadoField.val();
+                               calEvent.contacto = contactoField.val();
+
+                               var datos = "id="+calEvent.id+"&id_sala="+id_sala+"&anio="+anio+"&mes="+mes+"&dia="+dia+"&hora_inicio="+hora_inicio+"&minuto_inicio="+minuto_inicio+"&hora_fin="+hora_fin+"&minuto_fin="+minuto_fin+"&comentario="+body+"&id_grupo="+id_grupo+"&id_servicio="+id_servicio;
+//                               var datos = "id="+calEvent.id+"&id_sala="+id_sala+"&fecha="+fecha+"&hora_inicio="+hora_inicio+"&minuto_inicio="+minuto_inicio+"&hora_fin="+hora_fin+"&minuto_fin="+minuto_fin+"&title="+title+"&comentario="+body+"&id_grupo="+id_grupo+"&id_estado_reserva="+id_estado_reserva+"&id_servicio="+id_servicio;
+                               var destino = "{{ Route('calendario.actualizarEvento') }}";
+//                               calEvent.id = respuesta;
+                               $calendar.weekCalendar("removeUnsavedEvents");
+                               $calendar.weekCalendar("updateEvent", calEvent);
+                               $.ajax({
+                                   url:  destino,
+                                   type: "post",
+                                   dataType: "json",
+                                   data: datos,
+                                   async: true,
+                                   success:function(respuesta)
+                                   {
+                                       calEvent.id_estado_reserva = respuesta;
+//                                       calEvent.id = respuesta;
+                                       $calendar.weekCalendar("updateEvent", calEvent);
+                                       $dialogContent.dialog("close");
+
+
+                                   }
+                               });
+                               $dialogContent.dialog("close");
+                           }
+                       }
+
+                   });
+
                },
                "Cancelar reserva" : function() {
                     var id = calEvent.id;

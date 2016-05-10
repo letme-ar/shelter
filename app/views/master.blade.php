@@ -376,7 +376,7 @@
 
     @yield('content')
 </div>
-<div id="mensaje"></div>
+<div id="popup_mensaje"></div>
 <div id="" class="footer">
     <div class="container">
         <p class="text-muted">LETME</p>

@@ -64,14 +64,24 @@ class RepoReservasSalas extends RepoBase
     public function darListaVencidas($id_sala,$id_hora_actual)
     {
         $fecha_actual = date("Y-n-j");
+//        dd($fecha_actual);
         $datos = $this->getModel()->where("id_sala",$id_sala)
                     ->whereIn("id_estado_reserva",array(1,2))
-                    ->whereRaw("concat(anio,'-',mes,'-',dia) < '$fecha_actual'")
-            ->orWhere(function($query) use ($id_sala,$fecha_actual,$id_hora_actual)
+                    ->join("grupos as g","reservas_salas.id_grupo","=","g.id")
+                    ->join("horarios as hi","reservas_salas.id_horario_inicio","=","hi.id")
+                    ->join("horarios as hf","reservas_salas.id_horario_fin","=","hf.id")
+                    ->whereRaw("date(concat(anio,'-',mes,'-',dia)) < date '$fecha_actual'")
+            ->Where(function($query) use ($id_sala,$fecha_actual,$id_hora_actual)
             {
-                $query->WhereRaw("id in (select id from reservas_salas where id_sala = $id_sala and id_estado_reserva in (1,2) and concat(anio,'-',mes,'-',dia) <= '$fecha_actual' and id_horario_fin <= $id_hora_actual)");
+                $query->WhereRaw("reservas_salas.id in (select id from reservas_salas where id_sala = $id_sala and id_estado_reserva in (1,2) and concat(anio,'-',mes,'-',dia) <= '$fecha_actual' and id_horario_fin <= $id_hora_actual)");
             })
-            ->get();
+//            ->toSql();
+            ->get(array('reservas_salas.id','g.nombre as nombre_grupo', 'reservas_salas.id_sala','hi.horario as horario_inicio','hf.horario as horario_fin','reservas_salas.anio','reservas_salas.mes','reservas_salas.dia','reservas_salas.id_horario_inicio','reservas_salas.id_horario_fin','reservas_salas.id_grupo','reservas_salas.id_estado_reserva','reservas_salas.id_servicio','reservas_salas.comentario'));
+//            ->get(['reservas_salas.id']);
+
+//        $queries = \DB::getQueryLog();
+//        $last_query = end($queries);
+//        print_r($last_query);
         return $datos;
     }
 
@@ -81,8 +91,8 @@ class RepoReservasSalas extends RepoBase
         $datos = $this->getModel()
             ->where("id_sala",$id_sala)
             ->whereIn("id_estado_reserva",array(1,2))
-            ->whereRaw("concat(anio,'-',mes,'-',dia) < '$fecha_actual'")
-            ->orWhere(function($query) use ($id_sala,$fecha_actual,$id_hora_actual)
+            ->whereRaw("date(concat(anio,'-',mes,'-',dia)) < date '$fecha_actual'")
+            ->where(function($query) use ($id_sala,$fecha_actual,$id_hora_actual)
             {
                 $query->WhereRaw("id in (select id from reservas_salas where id_sala = $id_sala and id_estado_reserva in (1,2) and concat(anio,'-',mes,'-',dia) <= '$fecha_actual' and id_horario_fin <= $id_hora_actual)");
             })
@@ -96,14 +106,34 @@ class RepoReservasSalas extends RepoBase
             ->update(array('id_estado_reserva' => $id_estado));
     }
 
-    public function validarSuperposicion($fecha, $id_sala_actual, $id_horario_inicio, $id_horario_fin)
+    public function validarSuperposicion($fecha, $id_sala_actual, $id_horario_inicio, $id_horario_fin,$id="")
     {
+//        dd($id);
         $fecha = explode("/",$fecha);
         $dia = $fecha[0];
         $mes = $fecha[1];
         $anio = $fecha[2];
 
-        if($this->getModel()
+        $query = $this->getModel();
+        if(!empty($id))
+            $query = $query->whereNotIn("id",[$id]);
+//            dd("hola");
+
+        $query->where("dia",$dia)
+            ->where("mes",$mes)
+            ->where("anio",$anio)
+            ->whereIn("id_estado_reserva",[1,2])
+            ->where("id_sala",$id_sala_actual)
+            ->whereRaw("((id_horario_inicio >= $id_horario_inicio and id_horario_inicio < $id_horario_fin)
+                            or (id_horario_fin > $id_horario_inicio and id_horario_fin <= $id_horario_fin))")
+            ->get();
+
+//        $queries = \DB::getQueryLog();
+//        $last_query = end($queries);
+//        print_r($last_query);
+//        dd($query->count());
+        if($query->count() > 0)
+        /*if($this->getModel()
             ->where("dia",$dia)
             ->where("mes",$mes)
             ->where("anio",$anio)
@@ -111,7 +141,7 @@ class RepoReservasSalas extends RepoBase
             ->where("id_sala",$id_sala_actual)
             ->whereRaw("((id_horario_inicio >= $id_horario_inicio and id_horario_inicio < $id_horario_fin)
                             or (id_horario_fin > $id_horario_inicio and id_horario_fin <= $id_horario_fin))")
-            ->get(['id'])->first())
+            ->get(['id'])->first())*/
             return true;
         else
             return false;
