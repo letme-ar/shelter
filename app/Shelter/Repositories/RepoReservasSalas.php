@@ -108,43 +108,60 @@ class RepoReservasSalas extends RepoBase
 
     public function validarSuperposicion($fecha, $id_sala_actual, $id_horario_inicio, $id_horario_fin,$id="")
     {
-//        dd($id);
         $fecha = explode("/",$fecha);
         $dia = $fecha[0];
         $mes = $fecha[1];
         $anio = $fecha[2];
 
-        $query = $this->getModel();
         if(!empty($id))
-            $query = $query->whereNotIn("id",[$id]);
-//            dd("hola");
+        {
+            $res = \DB::table('reservas_salas')
+                ->whereRaw("id <> $id
+                            and dia = $dia
+                            and mes = $mes
+                            and anio = $anio
+                            and id_estado_reserva in (1, 2)
+                            and id_sala = $id_sala_actual
+                            and ((id_horario_inicio >= $id_horario_inicio and id_horario_inicio < $id_horario_fin)
+                            or (id_horario_fin > $id_horario_inicio and id_horario_fin <= $id_horario_fin)) ")
+                ->get();
+        }
+        else
+        {
+            $res = \DB::table('reservas_salas')
+                ->whereRaw("dia = $dia
+                            and mes = $mes
+                            and anio = $anio
+                            and id_estado_reserva in (1, 2)
+                            and id_sala = $id_sala_actual
+                            and ((id_horario_inicio >= $id_horario_inicio and id_horario_inicio < $id_horario_fin)
+                            or (id_horario_fin > $id_horario_inicio and id_horario_fin <= $id_horario_fin)) ")
+                ->get();
 
-        $query->where("dia",$dia)
-            ->where("mes",$mes)
-            ->where("anio",$anio)
-            ->whereIn("id_estado_reserva",[1,2])
-            ->where("id_sala",$id_sala_actual)
-            ->whereRaw("((id_horario_inicio >= $id_horario_inicio and id_horario_inicio < $id_horario_fin)
-                            or (id_horario_fin > $id_horario_inicio and id_horario_fin <= $id_horario_fin))")
-            ->get();
-
-//        $queries = \DB::getQueryLog();
-//        $last_query = end($queries);
-//        print_r($last_query);
-//        dd($query->count());
-        if($query->count() > 0)
-        /*if($this->getModel()
-            ->where("dia",$dia)
-            ->where("mes",$mes)
-            ->where("anio",$anio)
-            ->whereIn("id_estado_reserva",[1,2])
-            ->where("id_sala",$id_sala_actual)
-            ->whereRaw("((id_horario_inicio >= $id_horario_inicio and id_horario_inicio < $id_horario_fin)
-                            or (id_horario_fin > $id_horario_inicio and id_horario_fin <= $id_horario_fin))")
-            ->get(['id'])->first())*/
+        }
+       if(count($res) > 0)
             return true;
         else
             return false;
+
+    }
+
+    public function encontrar($id)
+    {
+        $reserva = $this->getModel()
+            ->join("horarios as hi","reservas_salas.id_horario_inicio","=","hi.id")
+            ->join("horarios as hf","reservas_salas.id_horario_fin","=","hf.id")
+            ->where("reservas_salas.id",$id)
+            ->get(['reservas_salas.id','reservas_salas.anio','reservas_salas.mes','reservas_salas.dia','hi.horario as horario_inicio','hf.horario as horario_fin'])->first();
+
+        $horario_inicio = explode(":",$reserva->horario_inicio);
+        $reserva->hora_inicio = $horario_inicio[0];
+        $reserva->minuto_inicio = $horario_inicio[1];
+
+        $horario_fin = explode(":",$reserva->horario_fin);
+        $reserva->hora_fin = $horario_fin[0];
+        $reserva->minuto_fin = $horario_fin[1];
+        return $reserva;
 
     }
 

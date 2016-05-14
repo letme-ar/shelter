@@ -21,6 +21,8 @@ $(document).ready(function() {
 
     });
 
+
+    // Gestos
     /*
     var $calendario_celular = document.querySelector("#calendario_celular");
     var calendario_celular = new Hammer($calendario_celular);
@@ -300,9 +302,12 @@ $(document).ready(function() {
       var hora_fin = calEvent.end.getHours();
       var minuto_fin = calEvent.end.getMinutes();
 
+      var fecha = dia+"/"+mes+"/"+anio;
+
       var id_sala = $("#id_sala").val();
       var id_grupo = calEvent.id_grupo;
-      var destino = "{{ Route('calendario.actualizarEvento') }}";
+      /*
+      {{--var destino = "{{ Route('calendario.actualizarEvento') }}";--}}
       var datos = "id="+calEvent.id+"&id_sala="+id_sala+"&anio="+anio+"&mes="+mes+"&dia="+dia+"&hora_inicio="+hora_inicio+"&minuto_inicio="+minuto_inicio+"&hora_fin="+hora_fin+"&minuto_fin="+minuto_fin+"&id_grupo="+id_grupo;
       $.ajax({
           url:  destino,
@@ -314,7 +319,73 @@ $(document).ready(function() {
           {
               calEvent.id_estado_reserva = respuesta;
           }
-      });
+      });*/
+
+          var datos = "id="+calEvent.id+"&id_sala="+id_sala+"&fecha="+fecha+"&hora_inicio="+hora_inicio+"&minuto_inicio="+minuto_inicio+"&hora_fin="+hora_fin+"&minuto_fin="+minuto_fin+"&id_grupo="+id_grupo;
+
+          var destino = "{{ Route('calendario.validarDatosCalendario') }}";
+          $.ajax({
+              type: "Post",
+              url: destino,
+              data: datos,
+              async: true,
+              success: function(respuesta){
+                  if(respuesta)
+                  {
+                      /*var datos = "id="+calEvent.id;
+                      {{--var destino = "{{ Route('calendario.obtenerReserva') }}";--}}
+                      $.ajax({
+                          url:  destino,
+                          type: "post",
+                          dataType: "json",
+                          data: datos,
+                          async: true,
+                          success:function(respuesta)
+                          {
+//                              console.log($calendar.weekCalendar("updateEvent",calEvent));
+
+                              calEvent.start.setFullYear(respuesta.anio);
+                              calEvent.start.setMonth(respuesta.mes - 1);
+                              calEvent.start.setDate(respuesta.dia);
+
+                              calEvent.start.setHours(respuesta.hora_inicio);
+                              calEvent.start.setMinutes(respuesta.minuto_inicio);
+
+                              calEvent.end.setHours(respuesta.hora_fin);
+                              calEvent.end.setMinutes(respuesta.minuto_fin);
+//                              console.log(calEvent.end);
+                              $calendar.weekCalendar("updateEvent", calEvent);
+                              $calendar.weekCalendar("removeUnsavedEvents");
+                          }
+                      });*/
+
+                      darMensaje("popup_mensaje",300,500,respuesta);
+
+                      $(location).attr('href',"{{ route('calendario.index') }}");
+
+
+                  }
+                  else
+                  {
+                      var datos = "id="+calEvent.id+"&id_sala="+id_sala+"&anio="+anio+"&mes="+mes+"&dia="+dia+"&hora_inicio="+hora_inicio+"&minuto_inicio="+minuto_inicio+"&hora_fin="+hora_fin+"&minuto_fin="+minuto_fin+"&id_grupo="+id_grupo;
+                      var destino = "{{ Route('calendario.actualizarEvento') }}";
+                      $calendar.weekCalendar("removeUnsavedEvents");
+                      $.ajax({
+                          url:  destino,
+                          type: "post",
+                          dataType: "json",
+                          data: datos,
+                          async: true,
+                          success:function(respuesta)
+                          {
+                              calEvent.id_estado_reserva = respuesta;
+                          }
+                      });
+                  }
+              }
+
+          });
+
       },
       eventResize : function(calEvent, $event) {
           var anio = calEvent.start.getFullYear();
@@ -327,19 +398,63 @@ $(document).ready(function() {
 
           var id_sala = $("#id_sala").val();
           var id_grupo = calEvent.id_grupo;
-          var destino = "{{ Route('calendario.actualizarEvento') }}";
-          var datos = "id="+calEvent.id+"&id_sala="+id_sala+"&anio="+anio+"&mes="+mes+"&dia="+dia+"&hora_inicio="+hora_inicio+"&minuto_inicio="+minuto_inicio+"&hora_fin="+hora_fin+"&minuto_fin="+minuto_fin+"&id_grupo="+id_grupo;
+          var fecha = dia+"/"+mes+"/"+anio;
+
+          var datos = "id="+calEvent.id+"&id_sala="+id_sala+"&fecha="+fecha+"&hora_inicio="+hora_inicio+"&minuto_inicio="+minuto_inicio+"&hora_fin="+hora_fin+"&minuto_fin="+minuto_fin+"&id_grupo="+id_grupo;
+
+          var destino = "{{ Route('calendario.validarDatosCalendario') }}";
           $.ajax({
-              url:  destino,
-              type: "post",
-              dataType: "json",
+              type: "Post",
+              url: destino,
               data: datos,
               async: true,
-              success:function(respuesta)
-              {
-                  calEvent.id_estado_reserva = respuesta;
+              success: function(respuesta){
+                  if(respuesta)
+                  {
+                      var datos = "id="+calEvent.id;
+                      var destino = "{{ Route('calendario.obtenerReserva') }}";
+                      $.ajax({
+                          url:  destino,
+                          type: "post",
+                          dataType: "json",
+                          data: datos,
+                          async: true,
+                          success:function(respuesta)
+                          {
+                              calEvent.start.setHours(respuesta.hora_inicio);
+                              calEvent.start.setMinutes(respuesta.minuto_inicio);
+                              calEvent.end.setHours(respuesta.hora_fin);
+                              calEvent.end.setMinutes(respuesta.minuto_fin);
+                              $calendar.weekCalendar("updateEvent", calEvent);
+
+                          }
+                      });
+
+
+                      darMensaje("popup_mensaje",300,500,respuesta);
+                  }
+                  else
+                  {
+                      var datos = "id="+calEvent.id+"&id_sala="+id_sala+"&anio="+anio+"&mes="+mes+"&dia="+dia+"&hora_inicio="+hora_inicio+"&minuto_inicio="+minuto_inicio+"&hora_fin="+hora_fin+"&minuto_fin="+minuto_fin+"&id_grupo="+id_grupo;
+                      var destino = "{{ Route('calendario.actualizarEvento') }}";
+                      $calendar.weekCalendar("removeUnsavedEvents");
+                      $calendar.weekCalendar("updateEvent", calEvent);
+                      $.ajax({
+                          url:  destino,
+                          type: "post",
+                          dataType: "json",
+                          data: datos,
+                          async: true,
+                          success:function(respuesta)
+                          {
+                              calEvent.id_estado_reserva = respuesta;
+                          }
+                      });
+                  }
               }
+
           });
+
       },
       eventClick : function(calEvent, $event) {
          if (calEvent.readOnly) {
@@ -371,51 +486,8 @@ $(document).ready(function() {
             buttons: {
                Actualizar : function() {
 
-
-
-
-                  /*calEvent.start = new Date(startField.val());
-                  calEvent.end = new Date(endField.val());
-                  calEvent.title = titleField.val();
-                  calEvent.body = bodyField.val();
-                  calEvent.nombre_grupo = $("#id_grupo :selected").text();
-                  calEvent.id_grupo = id_grupoField.val();
-                  calEvent.id_servicio = id_servicioField.val();
-                  calEvent.id_estado_reserva = id_estadoField.val();
-                  calEvent.contacto = contactoField.val();*/
-
-                  var horario_inicio = new Date(startField.val());
-                  var horario_fin = new Date(endField.val());
-                  /*
-                  var anio = calEvent.start.getFullYear();
-                  var mes = calEvent.start.getMonth()+1;
-                  var dia = calEvent.start.getDate();
-                  var hora_inicio = calEvent.start.getHours();
-                  var minuto_inicio = calEvent.start.getMinutes();
-                  var hora_fin = calEvent.end.getHours();
-                  var minuto_fin = calEvent.end.getMinutes();
-
-                  var id_sala = $("#id_sala").val();
-                  var title = titleField.val();
-                  var body = bodyField.val();
-                  var id_grupo = $("#id_grupo").val();
-                  var id_servicio = $("#id_servicio").val();
-                  {{--var destino = "{{ Route('calendario.actualizarEvento') }}";--}}
-                  var datos = "id="+calEvent.id+"&id_sala="+id_sala+"&anio="+anio+"&mes="+mes+"&dia="+dia+"&hora_inicio="+hora_inicio+"&minuto_inicio="+minuto_inicio+"&hora_fin="+hora_fin+"&minuto_fin="+minuto_fin+"&comentario="+body+"&id_grupo="+id_grupo+"&id_servicio="+id_servicio;
-                  $.ajax({
-                      url:  destino,
-                      type: "post",
-                      dataType: "json",
-                      data: datos,
-                      async: false,
-                      success:function(respuesta)
-                      {
-                          calEvent.id_estado_reserva = respuesta;
-                      }
-                  });
-                   $calendar.weekCalendar("updateEvent", calEvent);
-                   $dialogContent.dialog("close");*/
-
+                   var horario_inicio = new Date(startField.val());
+                   var horario_fin = new Date(endField.val());
                    var anio = horario_inicio.getFullYear();
                    var mes = horario_inicio.getMonth()+1;
                    var dia = horario_inicio.getDate();
@@ -430,7 +502,6 @@ $(document).ready(function() {
                    var body = bodyField.val();
                    var id_grupo = $("#id_grupo").val();
                    var id_servicio = $("#id_servicio").val();
-                   var destino = "{{ Route('calendario.nuevoEvento') }}";
                    var datos = "id="+calEvent.id+"&id_sala="+id_sala+"&fecha="+fecha+"&hora_inicio="+hora_inicio+"&minuto_inicio="+minuto_inicio+"&hora_fin="+hora_fin+"&minuto_fin="+minuto_fin+"&title="+title+"&comentario="+body+"&id_grupo="+id_grupo+"&id_estado_reserva="+id_estado_reserva+"&id_servicio="+id_servicio;
 
                    var destino = "{{ Route('calendario.validarDatosCalendario') }}";
@@ -457,9 +528,7 @@ $(document).ready(function() {
                                calEvent.contacto = contactoField.val();
 
                                var datos = "id="+calEvent.id+"&id_sala="+id_sala+"&anio="+anio+"&mes="+mes+"&dia="+dia+"&hora_inicio="+hora_inicio+"&minuto_inicio="+minuto_inicio+"&hora_fin="+hora_fin+"&minuto_fin="+minuto_fin+"&comentario="+body+"&id_grupo="+id_grupo+"&id_servicio="+id_servicio;
-//                               var datos = "id="+calEvent.id+"&id_sala="+id_sala+"&fecha="+fecha+"&hora_inicio="+hora_inicio+"&minuto_inicio="+minuto_inicio+"&hora_fin="+hora_fin+"&minuto_fin="+minuto_fin+"&title="+title+"&comentario="+body+"&id_grupo="+id_grupo+"&id_estado_reserva="+id_estado_reserva+"&id_servicio="+id_servicio;
                                var destino = "{{ Route('calendario.actualizarEvento') }}";
-//                               calEvent.id = respuesta;
                                $calendar.weekCalendar("removeUnsavedEvents");
                                $calendar.weekCalendar("updateEvent", calEvent);
                                $.ajax({
@@ -509,8 +578,6 @@ $(document).ready(function() {
             }
          }).show();
 
-         /*var startField = $dialogContent.find("select[name='start']").val(calEvent.start);
-         var endField = $dialogContent.find("select[name='end']").val(calEvent.end);*/
          $dialogContent.find(".date_holder").text($calendar.weekCalendar("formatDate", calEvent.start));
          setupStartAndEndTimeFields(startField, endField, calEvent, $calendar.weekCalendar("getTimeslotTimes", calEvent.start));
          $(window).resize().resize(); //fixes a bug in modal overlay size ??
@@ -558,16 +625,8 @@ $(document).ready(function() {
        });
        var lista = [{}];
        var respuesta = JSON.parse(res.responseText);
-//       setRespuesta(respuesta);
-//       console.log(respuesta);
-
-       //console.log(content);
-
-
 
        calendarioDispositivo(respuesta);
-
-
 
        var l = respuesta.length;
        for (var i=0; i<l; i++) {
@@ -660,7 +719,6 @@ $(document).ready(function() {
                 else
                     $("#calendario_celular").append("<div class='hora_ocupada'>"+ponerCeros(hora.toString())+":"+ponerCeros(minutos.toString())+" hs <label class='evento'>"+grupo+"</label>");
 
-//                $("#calendario_celular").append("<label>"+grupo+"</label></div>");
             }
         }
     }

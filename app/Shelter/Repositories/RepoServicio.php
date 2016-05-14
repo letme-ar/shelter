@@ -30,12 +30,25 @@ class RepoServicio extends RepoBase {
 
     public function darListaParaComboPorNegocio($id_negocio)
     {
-//        dd(date("Y-m-d"));
+        $fecha = date("Y-m-d");
+//        dd($id_negocio);
+//        $servicios = $this->getModel()->
+//            where('id_negocio',$id_negocio)->
+//            where('vigencia_desde','=<',date("Y-m-d"))->
+//            where('vigencia_hasta','>=',date("Y-m-d"))->
+//            lists('nombre', 'id');
+
+
         $servicios = $this->getModel()->
-            where('id_negocio',$id_negocio)->
-            where('vigencia_desde','<',date("Y-m-d"))->
-            where('vigencia_hasta','>',date("Y-m-d"))->
-            lists('nombre', 'id');
+                            whereRaw("`id_negocio` = $id_negocio
+                            and `vigencia_desde` <= '$fecha' and
+                            `vigencia_hasta` >= '$fecha'")->lists('nombre', 'id');
+
+//        dd($servicios);
+//                $queries = \DB::getQueryLog();
+//        $last_query = end($queries);
+//        print_r($last_query);
+
         return $servicios;
     }
 

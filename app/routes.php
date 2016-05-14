@@ -28,6 +28,7 @@ Route::group(array('before' => 'auth'), function()
     Route::get("calendario/nuevoEventoResponsive",array('as' => 'calendario.nuevoEventoResponsive','uses'  => 'CalendarioController@nuevoEventoResponsive'));
     Route::post("calendario/darComboEnd",array('as' => 'calendario.darComboEnd','uses'  => 'CalendarioController@darComboEnd'));
     Route::post("calendario/actualizarEvento",array('as' => 'calendario.actualizarEvento','uses'  => 'CalendarioController@actualizarEvento'));
+    Route::post("calendario/obtenerReserva",array('as' => 'calendario.obtenerReserva','uses'  => 'CalendarioController@obtenerReserva'));
     Route::post("calendario/guardarReservaResponsive",array('as' => 'calendario.guardarReservaResponsive','uses'  => 'CalendarioController@guardarReservaResponsive'));
     Route::post("calendario/eliminarEvento",array('as' => 'calendario.eliminarEvento','uses'  => 'CalendarioController@eliminarEvento'));
     Route::post("calendario/cambiarSala",array('as' => 'calendario.cambiarSala','uses'  => 'CalendarioController@actualizarSalaPrincipal'));

@@ -117,7 +117,10 @@ class CalendarioController extends BaseController
     private function darComboServicios()
     {
         $lista_servicios = $this->darListaServicios();
-        return Form::select('id_servicio', $lista_servicios,null, array('id' => 'id_servicio'));
+
+//        array_push($lista_servicios,['' => 'Seleccione']);
+//        dd($lista_servicios);
+        return Form::select('id_servicio',['' => 'Seleccione']+ $lista_servicios,null, array('id' => 'id_servicio'));
     }
 
     public function darReservasXSala()
@@ -219,7 +222,7 @@ class CalendarioController extends BaseController
 
     }
 
-    public function validarDatos($id_horario_inicio = "",$id_horario_fin = "")
+    public function validarDatos($id_horario_inicio = "",$id_horario_fin = "",$id = "")
     {
         $model   = $this->repoReservaSala->nuevaReservaSala();
         $data    = Input::all();
@@ -232,7 +235,7 @@ class CalendarioController extends BaseController
         }
         if((!empty($data['id_horario_inicio']))||(!empty($data['id_horario_fin'])))
         {
-            if($this->repoReservaSala->validarSuperposicion($data['fecha'],$this->repoSala->darSalaActual($this->id_negocio_principal),$data['id_horario_inicio'],$data['id_horario_fin'],$data['id']))
+            if($this->repoReservaSala->validarSuperposicion($data['fecha'],$this->repoSala->darSalaActual($this->id_negocio_principal),$data['id_horario_inicio'],$data['id_horario_fin'],$id))
                 $data['no_tiene_reserva'] = "";
             else
                 $data['no_tiene_reserva'] = "No tiene";
@@ -255,7 +258,11 @@ class CalendarioController extends BaseController
         $id_horario_inicio = $this->repoHorarios->obtenerIdPorHorario($this->functionsSpecials->completarCerosCalendario($data['hora_inicio']).":".$this->functionsSpecials->completarCerosCalendario($data['minuto_inicio']));
         $id_horario_fin = $this->repoHorarios->obtenerIdPorHorario($this->functionsSpecials->completarCerosCalendario($data['hora_fin']).":".$this->functionsSpecials->completarCerosCalendario($data['minuto_fin']));
 
-        return $this->validarDatos($id_horario_inicio,$id_horario_fin);
+        if(isset($data['id']))
+            return $this->validarDatos($id_horario_inicio,$id_horario_fin,$data['id']);
+        else
+            return $this->validarDatos($id_horario_inicio,$id_horario_fin);
+
     }
 
 
@@ -300,6 +307,13 @@ class CalendarioController extends BaseController
         $combo_horarios = $this->repoHorarios->getDataComboEnd($id_horario_inicio);
         return Field::select('id_horario_fin','Salida',$combo_horarios,null,['id' => 'end']);
 
+    }
+
+    function obtenerReserva()
+    {
+        $reserva = $this->repoReservaSala->encontrar(Input::get('id'));
+//        dd($reserva->horario_inicio);
+        return json_encode($reserva);
     }
 
 
